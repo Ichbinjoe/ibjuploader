@@ -185,7 +185,7 @@ int main(int argc, char *argv[]) {
 
     char *suppliedFilename = argv[optind];
     if (isatty(fileno(stdin))) {
-        if (argc < optind || optind == 1) { //No more arguments, requires filename
+        if (optind == 0) { //No more arguments, requires filename
             printf("Missing filename parameter\n");
             return EXIT_FAILURE;
         }
@@ -203,7 +203,7 @@ int main(int argc, char *argv[]) {
     } else {
         //Lets take the fifo and read shit from that
         //Requires filename param
-        if (filename == NULL && argc >= optind) {
+        if (filename == NULL && optind == 0) {
             printf("Missing filename parameter\n");
             return EXIT_FAILURE;
         } else if (filename == NULL) {
