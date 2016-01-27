@@ -123,7 +123,7 @@ int main(int argc, char *argv[]) {
      * We need to determine if we are piping data in or pulling it from
      * an OS file
      */
-    int fd;
+    FILE *f;
     char *filename = NULL;
     char *mykey = NULL;
     void *data = NULL;
@@ -166,7 +166,7 @@ int main(int argc, char *argv[]) {
             perror("no key specified and key file retrieval failed");
             return -1;
         } else {
-            void *buff = readOffFile(keyfile, false);
+            void *buff = readOffStream(keyfile, false);
             mykey = extractFromBuf(buff);
             free(buff);
             if (mykey[strlen(mykey) - 1] == '\n') {
@@ -184,14 +184,16 @@ int main(int argc, char *argv[]) {
     }
 
     char *suppliedFilename = argv[optind];
+    void *buff;
+
     if (isatty(fileno(stdin))) {
         if (optind == 0) { //No more arguments, requires filename
             printf("Missing filename parameter\n");
             return EXIT_FAILURE;
         }
 
-        fd = open(suppliedFilename, O_RDONLY);
-        if (fd == -1) {
+        f = fopen(suppliedFilename, "r");
+        if (f == NULL) {
             perror(suppliedFilename);
             return EXIT_FAILURE;
         }
@@ -199,6 +201,8 @@ int main(int argc, char *argv[]) {
         if (filename == NULL) {
             filename = basename(suppliedFilename);
         }
+
+        buff = readOffFile(f);
 
     } else {
         //Lets take the fifo and read shit from that
@@ -210,10 +214,10 @@ int main(int argc, char *argv[]) {
             filename = suppliedFilename;
         }
         //Now lets take the data from the stream, and buffer it
-        fd = fileno(stdin);
+        buff = readOffStream(fileno(stdin), false);
     }
 
-    void *buff = readOffFile(fd, false);
+
 
     data = extractFromBuf(buff);
     dataLen = lenbuf(buff);
