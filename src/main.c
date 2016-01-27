@@ -66,7 +66,7 @@ char *shorten(char *key, char *url) {
     return result;
 }
 
-char *upload(char *key, void *data, size_t dataLen, char *filename) {
+char *upload(char *key, void *data, size_t dataLen, char *filename, bool outputMeter) {
     void *curl = curl_easy_init();
     if (curl == NULL) {
         printf("error occured while capturing curl handle\n");
@@ -75,7 +75,7 @@ char *upload(char *key, void *data, size_t dataLen, char *filename) {
 
     curl_easy_setopt(curl, CURLOPT_URL, "https://ibj.io/upload");
     curl_easy_setopt(curl, CURLOPT_USERAGENT, "ibjio-curl/1.0");
-
+    curl_easy_setopt(curl, CURLOPT_NOPROGRESS, !outputMeter);
     struct curl_httppost *post = NULL;
     struct curl_httppost *last = NULL;
 
@@ -128,11 +128,12 @@ int main(int argc, char *argv[]) {
     char *mykey = NULL;
     void *data = NULL;
     bool isShorten = false;
+    bool useOutputMeter = true;
 
     size_t dataLen;
 
     int c;
-    while ((c = getopt(argc, argv, "+n:k:u:")) != -1) {
+    while ((c = getopt(argc, argv, "+n:k:u:s")) != -1) {
         switch (c) {
             case 'u':
                 filename = (char *) malloc(strlen(optarg) + 1);
@@ -146,6 +147,9 @@ int main(int argc, char *argv[]) {
             case 'k':
                 mykey = (char *) malloc(strlen(optarg) + 1);
                 strcpy(mykey, optarg);
+                break;
+            case 's':
+                useOutputMeter = false;
                 break;
             default:
                 printf("Unknown argument %c\n", c);
@@ -222,7 +226,7 @@ int main(int argc, char *argv[]) {
     data = extractFromBuf(buff);
     dataLen = lenbuf(buff);
 
-    printResult(upload(mykey, data, dataLen, filename));
+    printResult(upload(mykey, data, dataLen, filename, useOutputMeter));
 
     free(buff);
     return EXIT_SUCCESS;
