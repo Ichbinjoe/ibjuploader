@@ -7,6 +7,7 @@
 #include <unistd.h>
 #include <curl/curl.h>
 #include <curl/easy.h>
+#include <sys/stat.h>
 #include "buffer.h"
 
 #
@@ -204,6 +205,13 @@ int main(int argc, char *argv[]) {
 
         if (filename == NULL) {
             filename = basename(suppliedFilename);
+        }
+
+        struct stat file_stat;
+        stat(filename, &file_stat);
+        if (!S_ISREG(file_stat.st_mode)) {
+            printf("The path does not appear to reflect a file!\n");
+            return EXIT_FAILURE;
         }
 
         buff = readOffFile(f);
